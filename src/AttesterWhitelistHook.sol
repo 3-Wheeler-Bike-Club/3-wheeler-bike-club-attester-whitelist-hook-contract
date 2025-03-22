@@ -3,9 +3,9 @@ pragma solidity ^0.8.26;
 
 import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { IERC20 } from "@openzeppelin/contracts/interfaces/IERC20.sol";
-import { ISPHook } from "@ethsign/src/interfaces/ISPHook.sol";
+import { ISPHook } from "@sign/src/interfaces/ISPHook.sol";
 
-/// @title 3wb.club attester whitelist hook tracking V1.0
+/// @title 3wb.club attester whitelist hook V1.0
 /// @notice hook contract that allows only whitelisted attester interaction with Sign Protocol Schema
 /// @author Geeloko x Team Sign 
 

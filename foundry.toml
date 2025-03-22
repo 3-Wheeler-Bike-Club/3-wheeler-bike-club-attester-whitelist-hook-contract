@@ -5,7 +5,7 @@ libs = ["lib"]
 
 remappings = [
     "@openzeppelin/=lib/openzeppelin-contracts/",
-    "@ethsign/=lib/sign-protocol-evm/"
+    "@sign/=lib/sign-protocol-evm/"
 ]
 
 # See more config options https://github.com/foundry-rs/foundry/blob/master/crates/config/README.md#all-options
