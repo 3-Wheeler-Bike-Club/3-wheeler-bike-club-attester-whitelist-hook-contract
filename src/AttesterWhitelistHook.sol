@@ -1,35 +1,68 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.26;
 
-import { Ownable } from "@openzeppelin/contracts/access/Ownable.sol";
 import { IERC20 } from "@openzeppelin/contracts/interfaces/IERC20.sol";
-import { ISPHook } from "@sign/src/interfaces/ISPHook.sol";
+//import { IERC20 } from "https://github.com/OpenZeppelin/openzeppelin-contracts/blob/master/contracts/interfaces/IERC20.sol";
 
+import { WhitelistManager } from "./WhitelistManager.sol";
+
+ 
 /// @title 3wb.club attester whitelist hook V1.0
 /// @notice hook contract that allows only whitelisted attester interaction with Sign Protocol Schema
 /// @author Geeloko x Team Sign 
 
-// @dev This contract manages the whitelist. We are separating the whitelist logic from the hook to make things easier
-// to read.
-contract WhitelistMananger is Ownable {
-    mapping(address attester => bool allowed) public whitelist;
 
-    error UnauthorizedAttester();
 
-    constructor() Ownable(_msgSender()) { }
+interface ISPHook {
+    function didReceiveAttestation(
+        address attester,
+        uint64 schemaId,
+        uint64 attestationId,
+        bytes calldata extraData
+    )
+        external
+        payable;
 
-    function setWhitelist(address attester, bool allowed) external onlyOwner {
-        whitelist[attester] = allowed;
-    }
+    function didReceiveAttestation(
+        address attester,
+        uint64 schemaId,
+        uint64 attestationId,
+        IERC20 resolverFeeERC20Token,
+        uint256 resolverFeeERC20Amount,
+        bytes calldata extraData
+    )
+        external;
 
-    function _checkAttesterWhitelistStatus(address attester) internal view {
-        // solhint-disable-next-line custom-errors
-        require(whitelist[attester], UnauthorizedAttester());
-    }
+    function didReceiveRevocation(
+        address attester,
+        uint64 schemaId,
+        uint64 attestationId,
+        bytes calldata extraData
+    )
+        external
+        payable;
+
+    function didReceiveRevocation(
+        address attester,
+        uint64 schemaId,
+        uint64 attestationId,
+        IERC20 resolverFeeERC20Token,
+        uint256 resolverFeeERC20Amount,
+        bytes calldata extraData
+    )
+        external;
 }
 
 // @dev This contract implements the actual schema hook.
-contract AttesterWhitelistHook is ISPHook, WhitelistMananger {
+contract AttesterWhitelistHook is ISPHook {
+    WhitelistManager public whitelistManager;
+
+    /// @notice Initializes the hook with the address of the WhitelistManager.
+    /// @param _whitelistManager The address of the deployed WhitelistManager contract.
+    constructor(address _whitelistManager) {
+        whitelistManager = WhitelistManager(_whitelistManager);
+    }
+
     function didReceiveAttestation(
         address attester,
         uint64, // schemaId
@@ -39,7 +72,7 @@ contract AttesterWhitelistHook is ISPHook, WhitelistMananger {
         external
         payable
     {
-        _checkAttesterWhitelistStatus(attester);
+        whitelistManager._checkAttesterWhitelistStatus(attester);
     }
 
     function didReceiveAttestation(
@@ -53,7 +86,7 @@ contract AttesterWhitelistHook is ISPHook, WhitelistMananger {
         external
         view
     {
-        _checkAttesterWhitelistStatus(attester);
+        whitelistManager._checkAttesterWhitelistStatus(attester);
     }
 
     function didReceiveRevocation(
@@ -65,7 +98,7 @@ contract AttesterWhitelistHook is ISPHook, WhitelistMananger {
         external
         payable
     {
-        _checkAttesterWhitelistStatus(attester);
+        whitelistManager._checkAttesterWhitelistStatus(attester);
     }
 
     function didReceiveRevocation(
@@ -79,6 +112,6 @@ contract AttesterWhitelistHook is ISPHook, WhitelistMananger {
         external
         view
     {
-        _checkAttesterWhitelistStatus(attester);
+        whitelistManager._checkAttesterWhitelistStatus(attester);
     }
 }
