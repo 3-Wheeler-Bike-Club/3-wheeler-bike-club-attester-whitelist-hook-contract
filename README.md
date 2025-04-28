@@ -1,66 +1,92 @@
-## Foundry
+# 3WB Attester Whitelist Hook Contract
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+A Solidity hook contract for the Sign Protocol that restricts attestation capabilities to a configurable whitelist of approved attester addresses.
 
-Foundry consists of:
+## 🚀 Key Features
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+- **Whitelist Management**: Owner-only functions to add or remove multiple addresses in batch.
+- **Enforced Hook**: Implements `AttesterRegistryHook` (or equivalent) to validate whitelist membership before allowing attestations.
+- **Ownership Control**: Inherits `Ownable`—only the contract owner can modify the whitelist.
+- **View Utilities**: Query whether an address is whitelisted and retrieve the full whitelist.
 
-## Documentation
+## 📋 Public API
 
-https://book.getfoundry.sh/
+| Function                                                   | Accessibility | Description                                                 |
+| ---------------------------------------------------------- | ------------- | ----------------------------------------------------------- |
+| `addAttesters(address[] calldata addrs)`                   | onlyOwner     | Batch-add addresses to the whitelist.                       |
+| `removeAttesters(address[] calldata addrs)`                | onlyOwner     | Batch-remove addresses from the whitelist.                  |
+| `isAttesterWhitelisted(address addr) external view`        | public view   | Returns `true` if `addr` is currently whitelisted.         |
+| `getAllWhitelisted() external view returns (address[] )`   | public view   | Returns the full list of whitelisted attester addresses.    |
+| `preHook(address attester, bytes calldata data) external`  | hook entry    | Called by Sign Protocol before attestation; reverts if `attester` not whitelisted. |
 
-## Usage
+## 🛠 Setup & Deployment
 
-### Build
+### Prerequisites
 
-```shell
-$ forge build
+- [Foundry](https://book.getfoundry.sh/) (`forge`, `anvil`)
+- Node.js (for any auxiliary scripts)
+- A Celo or Ethereum RPC endpoint and deployer private key
+
+### Clone & Build
+
+```bash
+git clone https://github.com/3-Wheeler-Bike-Club/3-wheeler-bike-club-attester-whitelist-hook-contract.git
+cd 3-wheeler-bike-club-attester-whitelist-hook-contract
+
+# Ensure Foundry is up to date
+foundryup
+
+# Compile the contract
+forge build
 ```
 
-### Test
+### Testing
 
-```shell
-$ forge test
+```bash
+forge test
 ```
 
-### Format
+### Deployment
 
-```shell
-$ forge fmt
+1. Create a `.env` in the project root:
+
+   ```env
+   RPC_URL=https://forno.celo.org    # or your preferred RPC
+   PRIVATE_KEY=0xYOUR_DEPLOYER_KEY
+   ```
+
+2. Deploy with Forge script:
+
+   ```bash
+   forge script scripts/DeployWhitelistHook.s.sol \
+     --rpc-url $RPC_URL \
+     --private-key $PRIVATE_KEY \
+     --broadcast
+   ```
+
+3. Copy the deployed hook contract address for registry configuration.
+
+## 📁 Project Structure
+
+```bash
+/
+├── src/
+│   └── AttesterWhitelistHook.sol    # Main hook contract
+├── scripts/
+│   └── DeployWhitelistHook.s.sol    # Deployment script
+├── foundry.toml                    # Foundry configuration
+├── remappings.txt                  # Dependency remappings
+└── README.md                       # This file
 ```
 
-### Gas Snapshots
+## 🤝 Contributing
 
-```shell
-$ forge snapshot
+1. Fork the repo and create a branch (`git checkout -b feature/...`).
+2. Add or modify functionality with accompanying tests.
+3. Commit changes and open a Pull Request describing your updates.
+
+## 📄 License
+
+This project is licensed under the MIT License. See [LICENSE](LICENSE) for details.
 ```
 
-### Anvil
-
-```shell
-$ anvil
-```
-
-### Deploy
-
-```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
-```
-
-### Cast
-
-```shell
-$ cast <subcommand>
-```
-
-### Help
-
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
